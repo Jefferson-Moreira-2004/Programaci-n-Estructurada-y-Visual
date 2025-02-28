@@ -1,154 +1,240 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
 
-// Definimos una interfaz para operaciones básicas sobre los alumnos
-public interface IAlumnoOperations
+public class Alumno
 {
-    void AgregarAlumno(Alumno alumno);
-    void EliminarAlumno(string dni);
-    Alumno BuscarAlumno(string dni);
-    List<Alumno> ObtenerAlumnos();
-}
-
-// Clase base Persona
-public class Persona
-{
-    public string DNI { get; set; }
+    public string Dni { get; set; }
     public string Apellidos { get; set; }
     public string Nombre { get; set; }
-}
-
-// Clase Alumno que hereda de Persona
-public class Alumno : Persona
-{
     public double Nota { get; set; }
-    public string Calificacion { get; private set; }
 
-    public Alumno(string dni, string apellidos, string nombre, double nota)
+    public string Calificacion
     {
-        DNI = dni;
-        Apellidos = apellidos;
-        Nombre = nombre;
-        Nota = nota;
-        CalcularCalificacion();
+        get
+        {
+            if (Nota < 5)
+                return "SS";
+            else if (Nota < 7)
+                return "AP";
+            else if (Nota < 9)
+                return "NT";
+            else
+                return "SB";
+        }
     }
 
-    public void CalcularCalificacion()
+    public string MostrarInfo()
     {
-        if (Nota < 5) Calificacion = "SS";
-        else if (Nota < 7) Calificacion = "AP";
-        else if (Nota < 9) Calificacion = "NT";
-        else Calificacion = "SB";
-    }
-}
-
-// Implementación de la gestión de alumnos
-public class GestionAlumnos : IAlumnoOperations
-{
-    private List<Alumno> alumnos = new List<Alumno>();
-
-    public void AgregarAlumno(Alumno alumno)
-    {
-        if (!alumnos.Any(a => a.DNI == alumno.DNI))
-            alumnos.Add(alumno);
-        else
-            throw new Exception("El alumno con este DNI ya existe.");
-    }
-
-    public void EliminarAlumno(string dni)
-    {
-        // TODO: Falta validar si el alumno existe antes de eliminarlo.
-        var alumno = BuscarAlumno(dni);
-        if (alumno != null) alumnos.Remove(alumno);
-    }
-
-    public Alumno BuscarAlumno(string dni)
-    {
-        return alumnos.FirstOrDefault(a => a.DNI == dni);
-    }
-
-    public List<Alumno> ObtenerAlumnos()
-    {
-        return alumnos;
+        return $"{Dni} {Apellidos}, {Nombre} {Nota} {Calificacion}";
     }
 }
 
-// Formulario de la aplicación
-public class MainForm : Form
+public partial class MainForm : Form
 {
-    private GestionAlumnos gestion = new GestionAlumnos();
-    private TextBox txtDNI, txtApellidos, txtNombre, txtNota;
-    private Button btnAgregar, btnMostrar;
-    private ListBox lstAlumnos;
+    private Dictionary<string, Alumno> alumnos;
+    private TextBox dniTextBox, apellidosTextBox, nombreTextBox, notaTextBox;
+    private Label resultLabel;
 
     public MainForm()
     {
-        Text = "Gestión de Alumnos";
-        Size = new System.Drawing.Size(400, 400);
-
-        Label lblDNI = new Label { Text = "DNI:", Top = 20, Left = 10 };
-        txtDNI = new TextBox { Top = 20, Left = 100 };
-        Label lblApellidos = new Label { Text = "Apellidos:", Top = 50, Left = 10 };
-        txtApellidos = new TextBox { Top = 50, Left = 100 };
-        Label lblNombre = new Label { Text = "Nombre:", Top = 80, Left = 10 };
-        txtNombre = new TextBox { Top = 80, Left = 100 };
-        Label lblNota = new Label { Text = "Nota:", Top = 110, Left = 10 };
-        txtNota = new TextBox { Top = 110, Left = 100 };
-
-        btnAgregar = new Button { Text = "Agregar Alumno", Top = 140, Left = 100 };
-        btnAgregar.Click += BtnAgregar_Click;
-
-        btnMostrar = new Button { Text = "Mostrar Alumnos", Top = 170, Left = 100 };
-        btnMostrar.Click += BtnMostrar_Click;
-
-        lstAlumnos = new ListBox { Top = 200, Left = 10, Width = 350, Height = 150 };
-
-        Controls.Add(lblDNI);
-        Controls.Add(txtDNI);
-        Controls.Add(lblApellidos);
-        Controls.Add(txtApellidos);
-        Controls.Add(lblNombre);
-        Controls.Add(txtNombre);
-        Controls.Add(lblNota);
-        Controls.Add(txtNota);
-        Controls.Add(btnAgregar);
-        Controls.Add(btnMostrar);
-        Controls.Add(lstAlumnos);
+        InitializeComponent();
+        alumnos = new Dictionary<string, Alumno>();
     }
 
-    private void BtnAgregar_Click(object sender, EventArgs e)
+    private void InitializeComponent()
     {
+        this.Text = "Gestión de Alumnos";
+        this.ClientSize = new System.Drawing.Size(600, 400);
+
+        // DNI
+        Label dniLabel = new Label { Text = "DNI:", Location = new System.Drawing.Point(10, 10), Width = 100 };
+        dniTextBox = new TextBox { Location = new System.Drawing.Point(100, 10), Width = 200 };
+        this.Controls.Add(dniLabel);
+        this.Controls.Add(dniTextBox);
+
+        // Apellidos
+        Label apellidosLabel = new Label { Text = "Apellidos:", Location = new System.Drawing.Point(10, 40), Width = 100 };
+        apellidosTextBox = new TextBox { Location = new System.Drawing.Point(100, 40), Width = 200 };
+        this.Controls.Add(apellidosLabel);
+        this.Controls.Add(apellidosTextBox);
+
+        // Nombre
+        Label nombreLabel = new Label { Text = "Nombre:", Location = new System.Drawing.Point(10, 70), Width = 100 };
+        nombreTextBox = new TextBox { Location = new System.Drawing.Point(100, 70), Width = 200 };
+        this.Controls.Add(nombreLabel);
+        this.Controls.Add(nombreTextBox);
+
+        // Nota
+        Label notaLabel = new Label { Text = "Nota:", Location = new System.Drawing.Point(10, 100), Width = 100 };
+        notaTextBox = new TextBox { Location = new System.Drawing.Point(100, 100), Width = 200 };
+        this.Controls.Add(notaLabel);
+        this.Controls.Add(notaTextBox);
+
+        // Botones
+        Button agregarButton = new Button { Text = "Agregar Alumno", Location = new System.Drawing.Point(10, 130), Width = 120 };
+        agregarButton.Click += AgregarAlumno;
+        this.Controls.Add(agregarButton);
+
+        Button eliminarButton = new Button { Text = "Eliminar Alumno", Location = new System.Drawing.Point(140, 130), Width = 120 };
+        eliminarButton.Click += EliminarAlumno;
+        this.Controls.Add(eliminarButton);
+
+        Button consultarButton = new Button { Text = "Consultar Alumno", Location = new System.Drawing.Point(10, 160), Width = 120 };
+        consultarButton.Click += ConsultarAlumno;
+        this.Controls.Add(consultarButton);
+
+        Button modificarButton = new Button { Text = "Modificar Nota", Location = new System.Drawing.Point(140, 160), Width = 120 };
+        modificarButton.Click += ModificarNota;
+        this.Controls.Add(modificarButton);
+
+        Button mostrarButton = new Button { Text = "Mostrar Todos", Location = new System.Drawing.Point(10, 190), Width = 120 };
+        mostrarButton.Click += MostrarTodos;
+        this.Controls.Add(mostrarButton);
+
+        Button suspensosButton = new Button { Text = "Suspensos", Location = new System.Drawing.Point(140, 190), Width = 120 };
+        suspensosButton.Click += MostrarSuspensos;
+        this.Controls.Add(suspensosButton);
+
+        Button aprobadosButton = new Button { Text = "Aprobados", Location = new System.Drawing.Point(10, 220), Width = 120 };
+        aprobadosButton.Click += MostrarAprobados;
+        this.Controls.Add(aprobadosButton);
+
+        Button mhButton = new Button { Text = "Candidatos a MH", Location = new System.Drawing.Point(140, 220), Width = 120 };
+        mhButton.Click += MostrarMH;
+        this.Controls.Add(mhButton);
+
+        // Resultado
+        resultLabel = new Label { Location = new System.Drawing.Point(10, 250), Width = 500, Height = 100 };
+        this.Controls.Add(resultLabel);
+    }
+
+    private void AgregarAlumno(object sender, EventArgs e)
+    {
+        string dni = dniTextBox.Text;
+        string apellidos = apellidosTextBox.Text;
+        string nombre = nombreTextBox.Text;
         try
         {
-            double nota = double.Parse(txtNota.Text);
-            var alumno = new Alumno(txtDNI.Text, txtApellidos.Text, txtNombre.Text, nota);
-            gestion.AgregarAlumno(alumno);
-            MessageBox.Show("Alumno agregado correctamente.");
+            double nota = Convert.ToDouble(notaTextBox.Text);
+            if (alumnos.ContainsKey(dni))
+                MessageBox.Show("Alumno ya registrado.");
+            else
+            {
+                Alumno alumno = new Alumno { Dni = dni, Apellidos = apellidos, Nombre = nombre, Nota = nota };
+                alumnos[dni] = alumno;
+                MessageBox.Show("Alumno agregado.");
+                LimpiarCampos();
+            }
         }
-        catch (Exception ex)
+        catch (FormatException)
         {
-            // TODO: Mejorar manejo de excepciones, mostrar mensajes específicos para cada error
-            MessageBox.Show(ex.Message);
+            MessageBox.Show("La nota debe ser un número.");
         }
     }
 
-    private void BtnMostrar_Click(object sender, EventArgs e)
+    private void EliminarAlumno(object sender, EventArgs e)
     {
-        lstAlumnos.Items.Clear();
-        foreach (var alumno in gestion.ObtenerAlumnos())
-            lstAlumnos.Items.Add($"{alumno.DNI} {alumno.Apellidos}, {alumno.Nombre} {alumno.Nota} {alumno.Calificacion}");
+        string dni = dniTextBox.Text;
+        if (alumnos.ContainsKey(dni))
+        {
+            alumnos.Remove(dni);
+            MessageBox.Show("Alumno eliminado.");
+            LimpiarCampos();
+        }
+        else
+        {
+            MessageBox.Show("Alumno no encontrado.");
+        }
     }
-}
 
-// Clase principal para ejecutar la aplicación
-public static class Program
-{
-    [STAThread]
-    public static void Main()
+    private void ConsultarAlumno(object sender, EventArgs e)
     {
-        Application.EnableVisualStyles();
+        string dni = dniTextBox.Text;
+        if (alumnos.ContainsKey(dni))
+        {
+            Alumno alumno = alumnos[dni];
+            resultLabel.Text = alumno.MostrarInfo();
+        }
+        else
+        {
+            MessageBox.Show("Alumno no encontrado.");
+        }
+    }
+
+    private void ModificarNota(object sender, EventArgs e)
+    {
+        string dni = dniTextBox.Text;
+        try
+        {
+            double nuevaNota = Convert.ToDouble(notaTextBox.Text);
+            if (alumnos.ContainsKey(dni))
+            {
+                alumnos[dni].Nota = nuevaNota;
+                MessageBox.Show("Nota modificada.");
+                LimpiarCampos();
+            }
+            else
+            {
+                MessageBox.Show("Alumno no encontrado.");
+            }
+        }
+        catch (FormatException)
+        {
+            MessageBox.Show("La nota debe ser un número.");
+        }
+    }
+
+    private void MostrarTodos(object sender, EventArgs e)
+    {
+        string todos = string.Join("\n", alumnos.Values);
+        resultLabel.Text = todos;
+    }
+
+    private void MostrarSuspensos(object sender, EventArgs e)
+    {
+        var suspensos = new List<string>();
+        foreach (var alumno in alumnos.Values)
+        {
+            if (alumno.Nota < 5)
+                suspensos.Add(alumno.MostrarInfo());
+        }
+        resultLabel.Text = string.Join("\n", suspensos);
+    }
+
+    private void MostrarAprobados(object sender, EventArgs e)
+    {
+        var aprobados = new List<string>();
+        foreach (var alumno in alumnos.Values)
+        {
+            if (alumno.Nota >= 5)
+                aprobados.Add(alumno.MostrarInfo());
+        }
+        resultLabel.Text = string.Join("\n", aprobados);
+    }
+
+    private void MostrarMH(object sender, EventArgs e)
+    {
+        var mh = new List<string>();
+        foreach (var alumno in alumnos.Values)
+        {
+            if (alumno.Nota == 10)
+                mh.Add(alumno.MostrarInfo());
+        }
+        resultLabel.Text = string.Join("\n", mh);
+    }
+
+    private void LimpiarCampos()
+    {
+        dniTextBox.Clear();
+        apellidosTextBox.Clear();
+        nombreTextBox.Clear();
+        notaTextBox.Clear();
+    }
+
+    [STAThread]
+    static void Main()
+    {
         Application.Run(new MainForm());
     }
 }
