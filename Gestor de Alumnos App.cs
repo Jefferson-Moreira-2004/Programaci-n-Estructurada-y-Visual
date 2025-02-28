@@ -1,4 +1,9 @@
-// Empecé creando la interfaz para las operaciones básicas de alumnos.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Forms;
+
+// Definimos una interfaz para operaciones básicas sobre los alumnos
 public interface IAlumnoOperations
 {
     void AgregarAlumno(Alumno alumno);
@@ -7,7 +12,7 @@ public interface IAlumnoOperations
     List<Alumno> ObtenerAlumnos();
 }
 
-// Clase base Persona - Por ahora, lo tengo sencillo.
+// Clase base Persona
 public class Persona
 {
     public string DNI { get; set; }
@@ -38,14 +43,14 @@ public class Alumno : Persona
         else Calificacion = "SB";
     }
 }
-// Implementación de la gestión de alumnos, aunque todavía me falta validar algunos casos
+
+// Implementación de la gestión de alumnos
 public class GestionAlumnos : IAlumnoOperations
 {
     private List<Alumno> alumnos = new List<Alumno>();
 
     public void AgregarAlumno(Alumno alumno)
     {
-        // Falta la validación para duplicados
         if (!alumnos.Any(a => a.DNI == alumno.DNI))
             alumnos.Add(alumno);
         else
@@ -54,23 +59,23 @@ public class GestionAlumnos : IAlumnoOperations
 
     public void EliminarAlumno(string dni)
     {
-        // Aquí todavía no he validado si el alumno existe
+        // TODO: Falta validar si el alumno existe antes de eliminarlo.
         var alumno = BuscarAlumno(dni);
         if (alumno != null) alumnos.Remove(alumno);
     }
 
     public Alumno BuscarAlumno(string dni)
     {
-        // Falta que maneje si el alumno no se encuentra
         return alumnos.FirstOrDefault(a => a.DNI == dni);
     }
 
     public List<Alumno> ObtenerAlumnos()
     {
-        return alumnos; // Esto ya está funcionando bien
+        return alumnos;
     }
 }
-// Esta es la parte del formulario. Todavía no he agregado todas las validaciones, pero lo tengo casi listo
+
+// Formulario de la aplicación
 public class MainForm : Form
 {
     private GestionAlumnos gestion = new GestionAlumnos();
@@ -83,7 +88,6 @@ public class MainForm : Form
         Text = "Gestión de Alumnos";
         Size = new System.Drawing.Size(400, 400);
 
-        // Los controles están bien, aunque todavía no he agregado validación de datos
         Label lblDNI = new Label { Text = "DNI:", Top = 20, Left = 10 };
         txtDNI = new TextBox { Top = 20, Left = 100 };
         Label lblApellidos = new Label { Text = "Apellidos:", Top = 50, Left = 10 };
@@ -113,29 +117,38 @@ public class MainForm : Form
         Controls.Add(btnMostrar);
         Controls.Add(lstAlumnos);
     }
-}
-// Estos son los eventos que se activan cuando presiono los botones. Todavía falta agregar validación de entrada en los campos
-private void BtnAgregar_Click(object sender, EventArgs e)
-{
-    try
+
+    private void BtnAgregar_Click(object sender, EventArgs e)
     {
-        double nota = double.Parse(txtNota.Text); // Esto puede lanzar una excepción si el valor no es un número
-        var alumno = new Alumno(txtDNI.Text, txtApellidos.Text, txtNombre.Text, nota);
-        gestion.AgregarAlumno(alumno);
-        MessageBox.Show("Alumno agregado correctamente.");
+        try
+        {
+            double nota = double.Parse(txtNota.Text);
+            var alumno = new Alumno(txtDNI.Text, txtApellidos.Text, txtNombre.Text, nota);
+            gestion.AgregarAlumno(alumno);
+            MessageBox.Show("Alumno agregado correctamente.");
+        }
+        catch (Exception ex)
+        {
+            // TODO: Mejorar manejo de excepciones, mostrar mensajes específicos para cada error
+            MessageBox.Show(ex.Message);
+        }
     }
-    catch (Exception ex)
+
+    private void BtnMostrar_Click(object sender, EventArgs e)
     {
-        // Falta manejar mejor los errores
-        MessageBox.Show(ex.Message);
+        lstAlumnos.Items.Clear();
+        foreach (var alumno in gestion.ObtenerAlumnos())
+            lstAlumnos.Items.Add($"{alumno.DNI} {alumno.Apellidos}, {alumno.Nombre} {alumno.Nota} {alumno.Calificacion}");
     }
 }
 
-private void BtnMostrar_Click(object sender, EventArgs e)
+// Clase principal para ejecutar la aplicación
+public static class Program
 {
-    lstAlumnos.Items.Clear();
-    // Falta validar que haya alumnos antes de intentar mostrar algo
-    foreach (var alumno in gestion.ObtenerAlumnos())
-        lstAlumnos.Items.Add($"{alumno.DNI} {alumno.Apellidos}, {alumno.Nombre} {alumno.Nota} {alumno.Calificacion}");
+    [STAThread]
+    public static void Main()
+    {
+        Application.EnableVisualStyles();
+        Application.Run(new MainForm());
+    }
 }
-
